@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { type ComponentRenderProps } from "@json-render/react";
+import { type ComponentRenderProps } from "@ai-json-renderer/react";
 
 export function Button({ element, onAction, loading }: ComponentRenderProps) {
   const { label, variant, action, disabled } = element.props as {

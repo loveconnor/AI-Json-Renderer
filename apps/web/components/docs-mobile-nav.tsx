@@ -41,8 +41,8 @@ const navigation = [
   {
     title: "API Reference",
     items: [
-      { title: "@json-render/core", href: "/docs/api/core" },
-      { title: "@json-render/react", href: "/docs/api/react" },
+      { title: "@ai-json-renderer/core", href: "/docs/api/core" },
+      { title: "@ai-json-renderer/react", href: "/docs/api/react" },
     ],
   },
 ];

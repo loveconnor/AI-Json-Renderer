@@ -10,7 +10,7 @@ import {
   evaluateVisibility,
   type VisibilityCondition,
   type VisibilityContext as CoreVisibilityContext,
-} from "@json-render/core";
+} from "@ai-json-renderer/core";
 import { useData } from "./data";
 
 /**

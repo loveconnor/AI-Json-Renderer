@@ -1,4 +1,4 @@
-import { createCatalog } from "@json-render/core";
+import { createCatalog } from "@ai-json-renderer/core";
 import { z } from "zod";
 
 /**

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import type { UITree, UIElement, JsonPatch } from "@json-render/core";
-import { setByPath } from "@json-render/core";
+import type { UITree, UIElement, JsonPatch } from "@ai-json-renderer/core";
+import { setByPath } from "@ai-json-renderer/core";
 
 /**
  * Parse a single JSON patch line

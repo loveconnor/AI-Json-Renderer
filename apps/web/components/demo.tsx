@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { Renderer, useUIStream, JSONUIProvider } from "@json-render/react";
-import type { UITree } from "@json-render/core";
+import { Renderer, useUIStream, JSONUIProvider } from "@ai-json-renderer/react";
+import type { UITree } from "@ai-json-renderer/core";
 import { toast } from "sonner";
 import { CodeBlock } from "./code-block";
 import { Toaster } from "./ui/sonner";
@@ -146,7 +146,7 @@ const SIMULATION_STAGES: SimulationStage[] = [
   },
 ];
 
-const CODE_EXAMPLE = `import { Renderer, useUIStream } from '@json-render/react';
+const CODE_EXAMPLE = `import { Renderer, useUIStream } from '@ai-json-renderer/react';
 import { registry } from './registry';
 
 function App() {

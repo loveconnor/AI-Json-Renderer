@@ -1,238 +1,69 @@
-# @json-render/react
+## @ai-json-renderer/react
 
-**Predictable. Guardrailed. Fast.** React renderer for user-prompted dashboards, widgets, apps, and data visualizations.
+React renderer and helpers for AI-generated JSON UI.
 
-## Features
+This package takes JSON produced by a model (using the catalog from @ai-json-renderer/core) and renders it into real React components. It also includes providers and hooks to handle data, actions, validation, and streaming.
 
-- **Visibility Filtering**: Components automatically show/hide based on visibility conditions
-- **Action Handling**: Built-in action execution with confirmation dialogs
-- **Validation**: Field validation with error display
-- **Data Binding**: Two-way data binding between UI and data model
-- **Streaming**: Progressive rendering from streamed UI trees
+What it provides
 
-## Installation
+- `Renderer` to render JSON UI trees
+- Providers for data, actions, visibility, and validation
+- `useUIStream` hook for streaming JSONL responses
+- Shared types and helpers for React apps
+
+Install
 
 ```bash
-npm install @json-render/react @json-render/core
-# or
-pnpm add @json-render/react @json-render/core
+pnpm add @ai-json-renderer/react
 ```
 
-## Quick Start
-
-### Basic Setup
-
-```tsx
-import { JSONUIProvider, Renderer, useUIStream } from '@json-render/react';
-
-// Define your component registry
-const registry = {
-  Card: ({ element, children }) => (
-    <div className="card">
-      <h3>{element.props.title}</h3>
-      {children}
-    </div>
-  ),
-  Button: ({ element, onAction }) => (
-    <button onClick={() => onAction?.(element.props.action)}>
-      {element.props.label}
-    </button>
-  ),
-};
-
-// Action handlers
-const actionHandlers = {
-  submit: async (params) => {
-    await api.submit(params);
-  },
-  export: (params) => {
-    download(params.format);
-  },
-};
-
-function App() {
-  const { tree, isStreaming, send, clear } = useUIStream({
-    api: '/api/generate',
-  });
-
-  return (
-    <JSONUIProvider
-      registry={registry}
-      initialData={{ user: { name: 'John' } }}
-      authState={{ isSignedIn: true }}
-      actionHandlers={actionHandlers}
-    >
-      <input
-        placeholder="Describe the UI..."
-        onKeyDown={(e) => e.key === 'Enter' && send(e.target.value)}
-      />
-      <Renderer tree={tree} registry={registry} loading={isStreaming} />
-    </JSONUIProvider>
-  );
-}
-```
-
-### Using Contexts Directly
+Basic example
 
 ```tsx
 import {
-  DataProvider,
-  VisibilityProvider,
-  ActionProvider,
-  ValidationProvider,
-  useData,
-  useVisibility,
-  useActions,
-  useFieldValidation,
-} from '@json-render/react';
+	Renderer,
+	JSONUIProvider,
+	DataProvider,
+	VisibilityProvider,
+	ActionProvider,
+	useUIStream,
+} from "@ai-json-renderer/react";
 
-// Data context
-function MyComponent() {
-  const { data, get, set } = useData();
-  const value = get('/user/name');
-  
-  return (
-    <input
-      value={value}
-      onChange={(e) => set('/user/name', e.target.value)}
-    />
-  );
-}
+export function App() {
+	const { tree, isLoading, generate } = useUIStream({
+		endpoint: "/api/generate",
+	});
 
-// Visibility context
-function ConditionalComponent({ visible }) {
-  const { isVisible } = useVisibility();
-  
-  if (!isVisible(visible)) {
-    return null;
-  }
-  
-  return <div>Visible content</div>;
-}
-
-// Action context
-function ActionButton({ action }) {
-  const { execute, loadingActions } = useActions();
-  
-  return (
-    <button
-      onClick={() => execute(action)}
-      disabled={loadingActions.has(action.name)}
-    >
-      {action.name}
-    </button>
-  );
-}
-
-// Validation context
-function ValidatedInput({ path, checks }) {
-  const { errors, validate, touch } = useFieldValidation(path, { checks });
-  const [value, setValue] = useDataBinding(path);
-  
-  return (
-    <div>
-      <input
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onBlur={() => { touch(); validate(); }}
-      />
-      {errors.map((err) => <span key={err}>{err}</span>)}
-    </div>
-  );
+	return (
+		<DataProvider initialData={{}}>
+			<VisibilityProvider>
+				<ActionProvider handlers={{}}>
+					<JSONUIProvider>
+						<button onClick={() => generate("Create a dashboard")}
+							disabled={isLoading}
+						>
+							Generate
+						</button>
+						<Renderer tree={tree} />
+					</JSONUIProvider>
+				</ActionProvider>
+			</VisibilityProvider>
+		</DataProvider>
+	);
 }
 ```
 
-### Streaming UI
+How it works
 
-```tsx
-import { useUIStream } from '@json-render/react';
+1) Your API returns JSONL (streamed JSON lines).
+2) `useUIStream` reads that stream and builds a UI tree.
+3) `Renderer` turns the tree into real components.
+4) Providers supply data, actions, and validation.
 
-function StreamingDemo() {
-  const {
-    tree,        // Current UI tree
-    isStreaming, // Whether currently streaming
-    error,       // Error if any
-    send,        // Send a prompt
-    clear,       // Clear the tree
-  } = useUIStream({
-    api: '/api/generate',
-    onComplete: (tree) => console.log('Done:', tree),
-    onError: (err) => console.error('Error:', err),
-  });
+What it supports
 
-  return (
-    <div>
-      <button onClick={() => send('Create a dashboard')}>
-        Generate
-      </button>
-      {isStreaming && <span>Generating...</span>}
-      {tree && <Renderer tree={tree} registry={registry} />}
-    </div>
-  );
-}
-```
-
-## API Reference
-
-### Providers
-
-- `JSONUIProvider` - Combined provider for all contexts
-- `DataProvider` - Data model context
-- `VisibilityProvider` - Visibility evaluation context
-- `ActionProvider` - Action execution context
-- `ValidationProvider` - Validation context
-
-### Hooks
-
-- `useData()` - Access data model
-- `useDataValue(path)` - Get a single value
-- `useDataBinding(path)` - Two-way binding like useState
-- `useVisibility()` - Access visibility evaluation
-- `useIsVisible(condition)` - Check if condition is visible
-- `useActions()` - Access action execution
-- `useAction(action)` - Execute a specific action
-- `useValidation()` - Access validation context
-- `useFieldValidation(path, config)` - Field-level validation
-
-### Components
-
-- `Renderer` - Render a UI tree
-- `ConfirmDialog` - Default confirmation dialog
-
-### Utilities
-
-- `useUIStream(options)` - Hook for streaming UI generation
-- `flatToTree(elements)` - Convert flat list to tree
-
-## Component Props
-
-Components in your registry receive these props:
-
-```typescript
-interface ComponentRenderProps<P = Record<string, unknown>> {
-  element: UIElement<string, P>;  // The element definition
-  children?: ReactNode;           // Rendered children
-  onAction?: (action: Action) => void;  // Action callback
-  loading?: boolean;              // Streaming in progress
-}
-```
-
-## Example Component
-
-```tsx
-function MetricComponent({ element }: ComponentRenderProps) {
-  const { label, valuePath, format } = element.props;
-  const value = useDataValue(valuePath);
-  
-  const formatted = format === 'currency'
-    ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)
-    : String(value);
-  
-  return (
-    <div className="metric">
-      <span className="label">{label}</span>
-      <span className="value">{formatted}</span>
-    </div>
-  );
-}
-```
+- Streaming updates while the model responds
+- Safe rendering limited to your catalog
+- Data binding for real values and charts
+- Action handlers for buttons and forms
+- Visibility and validation rules

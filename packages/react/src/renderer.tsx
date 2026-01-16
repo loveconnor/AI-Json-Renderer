@@ -7,7 +7,7 @@ import type {
   Action,
   Catalog,
   ComponentDefinition,
-} from "@json-render/core";
+} from "@ai-json-renderer/core";
 import { useIsVisible } from "./contexts/visibility";
 import { useActions } from "./contexts/actions";
 import { useData } from "./contexts/data";

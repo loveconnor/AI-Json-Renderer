@@ -1,8 +1,8 @@
 {
-  "name": "@json-render/core",
+  "name": "@ai-json-renderer/core",
   "version": "0.2.0",
   "license": "Apache-2.0",
-  "description": "JSON becomes real things. Define your catalog, register your components, let AI generate.",
+  "description": "Core package for AI JSON Renderer - a generative UI framework powered by LLMs and JSON schemas.",
   "keywords": [
     "json",
     "ui",
@@ -16,12 +16,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vercel-labs/json-render.git",
+    "url": "git+https://github.com/loveconnor/ai-json-renderer.git",
     "directory": "packages/core"
   },
-  "homepage": "https://github.com/vercel-labs/json-render#readme",
+  "homepage": "https://github.com/loveconnor/ai-json-renderer#readme",
   "bugs": {
-    "url": "https://github.com/vercel-labs/json-render/issues"
+    "url": "https://github.com/loveconnor/ai-json-renderer/issues"
   },
   "publishConfig": {
     "access": "public"

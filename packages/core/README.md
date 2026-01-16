@@ -1,4 +1,4 @@
-# @json-render/core
+# @ai-json-renderer/core
 
 **Predictable. Guardrailed. Fast.** Core library for safe, user-prompted UI generation.
 
@@ -13,55 +13,71 @@
 ## Installation
 
 ```bash
-npm install @json-render/core
-# or
-pnpm add @json-render/core
+## @ai-json-renderer/core
+
+Core building blocks for safe, predictable AI-generated UI.
+
+This package is framework-agnostic. It helps you define a catalog of allowed components, build system prompts, and validate AI output. Your UI framework then renders the JSON safely.
+
+What it provides
+
+- Catalog definition with Zod schemas
+- Prompt helpers for consistent system prompts
+- Validation helpers to enforce rules
+- Visibility and logic helpers
+- Types shared across packages
+
+Install
+
+```bash
+pnpm add @ai-json-renderer/core
 ```
 
-## Quick Start
+Basic example
 
-### Create a Catalog
-
-```typescript
-import { createCatalog } from '@json-render/core';
-import { z } from 'zod';
+```ts
+import { createCatalog, generateCatalogPrompt } from "@ai-json-renderer/core";
+import { z } from "zod";
 
 const catalog = createCatalog({
-  name: 'My Dashboard',
+  name: "My UI",
   components: {
     Card: {
       props: z.object({
-        title: z.string(),
-        description: z.string().nullable(),
+        title: z.string().optional(),
       }),
       hasChildren: true,
-      description: 'A card container',
+      description: "Container card",
     },
     Button: {
       props: z.object({
         label: z.string(),
-        action: ActionSchema,
       }),
-      description: 'A clickable button',
-    },
-  },
-  actions: {
-    submit: { description: 'Submit the form' },
-    export: { 
-      params: z.object({ format: z.enum(['csv', 'pdf']) }),
-      description: 'Export data',
-    },
-  },
-  functions: {
+      hasChildren: false,
+      description: "Button",
     customValidation: (value) => typeof value === 'string' && value.length > 0,
   },
 });
+
+const systemPrompt = generateCatalogPrompt(catalog);
 ```
 
-### Visibility Conditions
+How to use it
+
+1) Define a catalog of allowed components.
+2) Create a system prompt from the catalog.
+3) Ask a model to output JSON that matches the catalog.
+4) Validate and render that JSON in your UI.
+
+Common exports
+
+- `createCatalog` for catalog creation
+- `generateCatalogPrompt` for AI system prompts
+- Validation and visibility helpers
+- Core types used by the React package
 
 ```typescript
-import { visibility, evaluateVisibility } from '@json-render/core';
+import { visibility, evaluateVisibility } from '@ai-json-renderer/core';
 
 // Simple path-based visibility
 const element1 = {
@@ -102,7 +118,7 @@ const isVisible = evaluateVisibility(element1.visible, {
 ### Rich Actions
 
 ```typescript
-import { resolveAction, executeAction } from '@json-render/core';
+import { resolveAction, executeAction } from '@ai-json-renderer/core';
 
 const buttonAction = {
   name: 'refund',
@@ -126,7 +142,7 @@ const resolved = resolveAction(buttonAction, dataModel);
 ### Validation
 
 ```typescript
-import { runValidation, check } from '@json-render/core';
+import { runValidation, check } from '@ai-json-renderer/core';
 
 const config = {
   checks: [

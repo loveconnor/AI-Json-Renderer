@@ -1,8 +1,8 @@
 "use client";
 
-import { type ComponentRenderProps } from "@json-render/react";
-import { useData } from "@json-render/react";
-import { getByPath } from "@json-render/core";
+import { type ComponentRenderProps } from "@ai-json-renderer/react";
+import { useData } from "@ai-json-renderer/react";
+import { getByPath } from "@ai-json-renderer/core";
 
 export function Metric({ element }: ComponentRenderProps) {
   const { label, valuePath, format, trend, trendValue } = element.props as {

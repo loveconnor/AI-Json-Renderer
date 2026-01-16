@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { type ComponentRenderProps } from "@json-render/react";
+import { type ComponentRenderProps } from "@ai-json-renderer/react";
 
 export function Heading({ element }: ComponentRenderProps) {
   const { text, level } = element.props as {

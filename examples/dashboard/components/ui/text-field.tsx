@@ -1,8 +1,8 @@
 "use client";
 
-import { type ComponentRenderProps } from "@json-render/react";
-import { useData, useFieldValidation } from "@json-render/react";
-import { getByPath } from "@json-render/core";
+import { type ComponentRenderProps } from "@ai-json-renderer/react";
+import { useData, useFieldValidation } from "@ai-json-renderer/react";
+import { getByPath } from "@ai-json-renderer/core";
 
 export function TextField({ element }: ComponentRenderProps) {
   const { label, valuePath, placeholder, type, checks, validateOn } =

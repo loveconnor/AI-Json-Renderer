@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentRenderProps } from "@json-render/react";
+import { type ComponentRenderProps } from "@ai-json-renderer/react";
 
 export function Grid({ element, children }: ComponentRenderProps) {
   const { columns, gap } = element.props as {

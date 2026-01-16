@@ -13,7 +13,7 @@ import {
   setByPath,
   type DataModel,
   type AuthState,
-} from "@json-render/core";
+} from "@ai-json-renderer/core";
 
 /**
  * Data context value

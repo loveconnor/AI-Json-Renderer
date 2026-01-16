@@ -15,7 +15,7 @@ import {
   type ActionHandler,
   type ActionConfirm,
   type ResolvedAction,
-} from "@json-render/core";
+} from "@ai-json-renderer/core";
 import { useData } from "./data";
 
 /**

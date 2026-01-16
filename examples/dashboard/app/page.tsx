@@ -7,7 +7,7 @@ import {
   VisibilityProvider,
   useUIStream,
   Renderer,
-} from "@json-render/react";
+} from "@ai-json-renderer/react";
 import { componentRegistry } from "@/components/ui";
 
 const INITIAL_DATA = {

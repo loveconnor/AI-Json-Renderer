@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentRenderProps } from "@json-render/react";
+import { type ComponentRenderProps } from "@ai-json-renderer/react";
 
 export function Empty({ element }: ComponentRenderProps) {
   const { title, description } = element.props as {

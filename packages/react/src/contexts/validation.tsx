@@ -13,7 +13,7 @@ import {
   type ValidationConfig,
   type ValidationFunction,
   type ValidationResult,
-} from "@json-render/core";
+} from "@ai-json-renderer/core";
 import { useData } from "./data";
 
 /**

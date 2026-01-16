@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { UIElement, Action } from "@json-render/core";
+import type { UIElement, Action } from "@ai-json-renderer/core";
 
 export interface ComponentRenderProps {
   element: UIElement;

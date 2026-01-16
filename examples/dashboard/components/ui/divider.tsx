@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentRenderProps } from "@json-render/react";
+import { type ComponentRenderProps } from "@ai-json-renderer/react";
 
 export function Divider({ element }: ComponentRenderProps) {
   const { orientation } = element.props as { orientation?: string | null };

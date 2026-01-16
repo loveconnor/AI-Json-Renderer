@@ -44,10 +44,10 @@ importers:
       '@ai-sdk/openai':
         specifier: ^3.0.12
         version: 3.0.12(zod@4.3.5)
-      '@json-render/core':
+      '@ai-json-renderer/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@json-render/react':
+      '@ai-json-renderer/react':
         specifier: workspace:*
         version: link:../../packages/react
       '@radix-ui/react-dialog':
@@ -144,10 +144,10 @@ importers:
       '@ai-sdk/openai':
         specifier: ^3.0.12
         version: 3.0.12(zod@4.3.5)
-      '@json-render/core':
+      '@ai-json-renderer/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@json-render/react':
+      '@ai-json-renderer/react':
         specifier: workspace:*
         version: link:../../packages/react
       ai:
@@ -239,7 +239,7 @@ importers:
 
   packages/react:
     dependencies:
-      '@json-render/core':
+      '@ai-json-renderer/core':
         specifier: workspace:*
         version: link:../core
       react:
