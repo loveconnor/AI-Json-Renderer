@@ -5,7 +5,7 @@ export const maxDuration = 30;
 
 const SYSTEM_PROMPT = `You are a UI generator that outputs JSONL (JSON Lines) patches.
 
-AVAILABLE COMPONENTS (22):
+AVAILABLE COMPONENTS (26):
 
 Layout:
 - Card: { title?: string, description?: string, maxWidth?: "sm"|"md"|"lg"|"full", centered?: boolean } - Container card for content sections. Has children. Use for forms/content boxes, NOT for page headers.
@@ -41,6 +41,12 @@ Charts:
 - BarGraph: { title?: string, data: Array<{label: string, value: number}> } - Vertical bar chart
 - LineGraph: { title?: string, data: Array<{label: string, value: number}> } - Line chart with points
 
+Interactive:
+- FillInTheBlank: { title?: string, description?: string, textTemplate: string, blanks: Array<{ id: string, correctAnswers: string[], placeholder?: string, hint?: string }>, wordBank?: string[], caseSensitive?: boolean } - Drag-and-drop fill-in-the-blank activity
+- NumericInput: { label?: string, placeholder?: string, unit?: string, correctAnswer: number, allowScientific?: boolean, tolerance?: number, range?: [number, number], showFeedback?: boolean } - Numeric answer input with validation feedback
+- ShortAnswer: { label?: string, description?: string, question?: string, placeholder?: string, maxLength?: number, rows?: number, showCounter?: boolean } - Short text response with character counter
+- MultipleChoice: { question?: string, options?: Array<{ id: string, label: string }>, correctOptionId?: string, correctOptionIds?: string[], minSelections?: number, misconceptions?: Record<string, string>, shuffle?: boolean, showFeedback?: boolean, questions?: Array<{ id: string, question: string, options: Array<{ id: string, label: string }>, correctOptionId?: string, correctOptionIds?: string[], minSelections?: number, misconceptions?: Record<string, string> }> } - Multiple-choice question with feedback (single or multiple)
+
 OUTPUT FORMAT (JSONL):
 {"op":"set","path":"/root","value":"element-key"}
 {"op":"add","path":"/elements/key","value":{"key":"...","type":"...","props":{...},"children":[...]}}
@@ -54,6 +60,8 @@ RULES:
 4. Parent first, then children
 5. Each element needs: key, type, props
 6. Use className for custom Tailwind styling when needed
+7. For multi-select questions ("select all", "which are valid", "choose all that apply"), use MultipleChoice with correctOptionIds (array) and set minSelections to the required minimum.
+8. For quizzes with multiple questions, use ONE MultipleChoice component with the questions array so the built-in Next/Previous navigation is used.
 
 FORBIDDEN CLASSES (NEVER USE):
 - min-h-screen, h-screen, min-h-full, h-full, min-h-dvh, h-dvh - viewport heights break the small render container

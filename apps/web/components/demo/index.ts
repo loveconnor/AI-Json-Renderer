@@ -12,6 +12,7 @@ export { Card } from "./card";
 export { Checkbox } from "./checkbox";
 export { Divider } from "./divider";
 export { Fallback } from "./fallback";
+export { FillInTheBlank } from "./FillInTheBlank";
 export { Form } from "./form";
 export { Grid } from "./grid";
 export { Heading } from "./heading";
@@ -19,10 +20,13 @@ export { Image } from "./image";
 export { Input } from "./input";
 export { LineGraph } from "./line-graph";
 export { Link } from "./link";
+export { NumericInput } from "./NumericInput";
+export { MultipleChoice } from "./MultipleChoice";
 export { Progress } from "./progress";
 export { Radio } from "./radio";
 export { Rating } from "./rating";
 export { Select } from "./select";
+export { ShortAnswer } from "./ShortAnswer";
 export { Stack } from "./stack";
 export { Switch } from "./switch";
 export { Text } from "./text";
@@ -38,6 +42,7 @@ import { Card } from "./card";
 import { Checkbox } from "./checkbox";
 import { Divider } from "./divider";
 import { Fallback } from "./fallback";
+import { FillInTheBlank } from "./FillInTheBlank";
 import { Form } from "./form";
 import { Grid } from "./grid";
 import { Heading } from "./heading";
@@ -45,10 +50,13 @@ import { Image } from "./image";
 import { Input } from "./input";
 import { LineGraph } from "./line-graph";
 import { Link } from "./link";
+import { NumericInput } from "./NumericInput";
+import { MultipleChoice } from "./MultipleChoice";
 import { Progress } from "./progress";
 import { Radio } from "./radio";
 import { Rating } from "./rating";
 import { Select } from "./select";
+import { ShortAnswer } from "./ShortAnswer";
 import { Stack } from "./stack";
 import { Switch } from "./switch";
 import { Text } from "./text";
@@ -63,6 +71,7 @@ export const demoRegistry: ComponentRegistry = {
   Card,
   Checkbox,
   Divider,
+  FillInTheBlank,
   Form,
   Grid,
   Heading,
@@ -70,10 +79,13 @@ export const demoRegistry: ComponentRegistry = {
   Input,
   LineGraph,
   Link,
+  NumericInput,
+  MultipleChoice,
   Progress,
   Radio,
   Rating,
   Select,
+  ShortAnswer,
   Stack,
   Switch,
   Text,
