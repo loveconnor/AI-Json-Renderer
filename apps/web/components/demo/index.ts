@@ -11,6 +11,10 @@ export { Button } from "./button";
 export { Card } from "./card";
 export { Checkbox } from "./checkbox";
 export { Divider } from "./divider";
+export { DragDrop } from "./DragDrop";
+export { CodeFill } from "./CodeFill";
+export { DiagramSelection } from "./DiagramSelection";
+export { EquationBuilder } from "./EquationBuilder";
 export { Fallback } from "./fallback";
 export { FillInTheBlank } from "./FillInTheBlank";
 export { Form } from "./form";
@@ -20,7 +24,9 @@ export { Image } from "./image";
 export { Input } from "./input";
 export { LineGraph } from "./line-graph";
 export { Link } from "./link";
+export { Matching } from "./Matching";
 export { NumericInput } from "./NumericInput";
+export { OrderSteps } from "./OrderSteps";
 export { MultipleChoice } from "./MultipleChoice";
 export { Progress } from "./progress";
 export { Radio } from "./radio";
@@ -31,6 +37,7 @@ export { Stack } from "./stack";
 export { Switch } from "./switch";
 export { Text } from "./text";
 export { Textarea } from "./textarea";
+export { TrueFalse } from "./TrueFalse";
 
 import type { ComponentRegistry } from "./types";
 import { Alert } from "./alert";
@@ -41,6 +48,10 @@ import { Button } from "./button";
 import { Card } from "./card";
 import { Checkbox } from "./checkbox";
 import { Divider } from "./divider";
+import { DragDrop } from "./DragDrop";
+import { CodeFill } from "./CodeFill";
+import { DiagramSelection } from "./DiagramSelection";
+import { EquationBuilder } from "./EquationBuilder";
 import { Fallback } from "./fallback";
 import { FillInTheBlank } from "./FillInTheBlank";
 import { Form } from "./form";
@@ -50,7 +61,9 @@ import { Image } from "./image";
 import { Input } from "./input";
 import { LineGraph } from "./line-graph";
 import { Link } from "./link";
+import { Matching } from "./Matching";
 import { NumericInput } from "./NumericInput";
+import { OrderSteps } from "./OrderSteps";
 import { MultipleChoice } from "./MultipleChoice";
 import { Progress } from "./progress";
 import { Radio } from "./radio";
@@ -61,6 +74,7 @@ import { Stack } from "./stack";
 import { Switch } from "./switch";
 import { Text } from "./text";
 import { Textarea } from "./textarea";
+import { TrueFalse } from "./TrueFalse";
 
 export const demoRegistry: ComponentRegistry = {
   Alert,
@@ -71,6 +85,10 @@ export const demoRegistry: ComponentRegistry = {
   Card,
   Checkbox,
   Divider,
+  DragDrop,
+  CodeFill,
+  DiagramSelection,
+  EquationBuilder,
   FillInTheBlank,
   Form,
   Grid,
@@ -79,7 +97,9 @@ export const demoRegistry: ComponentRegistry = {
   Input,
   LineGraph,
   Link,
+  Matching,
   NumericInput,
+  OrderSteps,
   MultipleChoice,
   Progress,
   Radio,
@@ -90,6 +110,7 @@ export const demoRegistry: ComponentRegistry = {
   Switch,
   Text,
   Textarea,
+  TrueFalse,
 };
 
 export const fallbackComponent = Fallback;
