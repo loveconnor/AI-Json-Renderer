@@ -154,6 +154,7 @@ Lesson Structure Requirements:
 - Do NOT create steps that are only a heading. Every text-only step must include at least one Text element under the heading.
 - For text-only teaching steps, use Heading/Text (or a Stack of them) directly. Do NOT wrap teaching text in a Card.
 - Use Markdown for the teaching text blocks instead of Text when there is more than one sentence or any formatting (lists, code, math).
+- Ensure there are enough steps for the learner to fully understand the concept, including recap and mastery checks; increase steps beyond the minimum if the topic needs it.
 
 Benefits:
 - Stops users from just scrolling through text.

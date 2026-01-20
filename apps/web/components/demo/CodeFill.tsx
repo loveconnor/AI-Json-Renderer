@@ -203,7 +203,7 @@ const CodeRenderer = ({
   }, [template]);
 
   const parts = useMemo(() => {
-    const regex = /({{gap_[^}]+}})/g;
+    const regex = /({{gap[^}]*}})/g;
     return normalizedTemplate.split(regex);
   }, [normalizedTemplate]);
 
@@ -228,7 +228,7 @@ const CodeRenderer = ({
   return (
     <div className="font-mono text-sm leading-8 whitespace-pre-wrap">
       {parts.map((part, index) => {
-        const gapMatch = part.match(/{{(gap_[^}]+)}}/);
+        const gapMatch = part.match(/{{(gap[^}]+)}}/);
         const gapId = gapMatch?.[1];
 
         if (gapId) {
@@ -298,12 +298,14 @@ const OptionBank = ({ options, onSelect }: OptionBankProps) => {
     e.dataTransfer.effectAllowed = "copy";
   };
 
+  const safeOptions = Array.isArray(options) ? options : [];
+
   return (
     <div className="flex flex-col gap-2">
       <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
         Options
       </h3>
-      {options.map((opt) => (
+      {safeOptions.map((opt) => (
         <button
           key={opt.id}
           draggable
