@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Renderer, useUIStream, JSONUIProvider } from "@ai-json-renderer/react";
-import type { UITree } from "@ai-json-renderer/core";
+import type { UITree, UIElement } from "@ai-json-renderer/core";
 import { toast } from "sonner";
-import { CodeBlock } from "./code-block";
+import { CodeBlock, CodeBlockCode } from "./code-block";
 import { Toaster } from "./ui/sonner";
 import {
   demoRegistry,
@@ -13,6 +13,18 @@ import {
 } from "./demo/index";
 
 const SIMULATION_PROMPT = "Create a contact form with name, email, and message";
+
+export type DemoProps = {
+  api?: string;
+  promptPrefix?: string;
+  promptSuffix?: string;
+  placeholder?: string;
+  helperText?: string;
+  simulationPrompt?: string;
+  layout?: "split" | "full";
+  showJsonToggle?: boolean;
+  stepByStep?: boolean;
+};
 
 interface SimulationStage {
   tree: UITree;
@@ -167,7 +179,17 @@ type Mode = "simulation" | "interactive";
 type Phase = "typing" | "streaming" | "complete";
 type Tab = "stream" | "json" | "code";
 
-export function Demo() {
+export function Demo({
+  api = "/api/generate",
+  promptPrefix = "",
+  promptSuffix = "",
+  placeholder = "Describe what you want to build...",
+  helperText = 'Try: "Create a login form" or "Build a feedback form with rating"',
+  simulationPrompt = SIMULATION_PROMPT,
+  layout = "split",
+  showJsonToggle = false,
+  stepByStep = false,
+}: DemoProps = {}) {
   const [mode, setMode] = useState<Mode>("simulation");
   const [phase, setPhase] = useState<Phase>("typing");
   const [typedPrompt, setTypedPrompt] = useState("");
@@ -177,6 +199,8 @@ export function Demo() {
   const [activeTab, setActiveTab] = useState<Tab>("json");
   const [simulationTree, setSimulationTree] = useState<UITree | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showJson, setShowJson] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Use the library's useUIStream hook for real API calls
@@ -186,7 +210,7 @@ export function Demo() {
     send,
     clear,
   } = useUIStream({
-    api: "/api/generate",
+    api,
     onError: (err: Error) => console.error("Generation error:", err),
   } as Parameters<typeof useUIStream>[0]);
 
@@ -206,11 +230,11 @@ export function Demo() {
     if (mode === "simulation") {
       setMode("interactive");
       setPhase("complete");
-      setTypedPrompt(SIMULATION_PROMPT);
+      setTypedPrompt(simulationPrompt);
       setUserPrompt("");
     }
     clear();
-  }, [mode, clear]);
+  }, [mode, clear, simulationPrompt]);
 
   // Typing effect for simulation
   useEffect(() => {
@@ -218,8 +242,8 @@ export function Demo() {
 
     let i = 0;
     const interval = setInterval(() => {
-      if (i < SIMULATION_PROMPT.length) {
-        setTypedPrompt(SIMULATION_PROMPT.slice(0, i + 1));
+      if (i < simulationPrompt.length) {
+        setTypedPrompt(simulationPrompt.slice(0, i + 1));
         i++;
       } else {
         clearInterval(interval);
@@ -228,7 +252,7 @@ export function Demo() {
     }, 20);
 
     return () => clearInterval(interval);
-  }, [mode, phase]);
+  }, [mode, phase, simulationPrompt]);
 
   // Streaming effect for simulation
   useEffect(() => {
@@ -278,21 +302,26 @@ export function Demo() {
   }, [mode, apiTree, streamLines]);
 
   const handleSubmit = useCallback(async () => {
-    if (!userPrompt.trim() || isStreaming) return;
+    const finalPrompt = `${promptPrefix}${userPrompt}${promptSuffix}`;
+    if (!finalPrompt.trim() || isStreaming) return;
     setStreamLines([]);
-    await send(userPrompt);
-  }, [userPrompt, isStreaming, send]);
+    await send(finalPrompt);
+  }, [userPrompt, isStreaming, send, promptPrefix, promptSuffix]);
 
   // Expose action handler for registry components - shows toast with text
   useEffect(() => {
-    (
-      window as unknown as { __demoAction?: (text: string) => void }
-    ).__demoAction = (text: string) => {
+    const win = window as unknown as {
+      __demoAction?: (text: string) => void;
+      __demoNextStep?: () => void;
+    };
+
+    win.__demoAction = (text: string) => {
       toast(text);
     };
+
     return () => {
-      delete (window as unknown as { __demoAction?: (text: string) => void })
-        .__demoAction;
+      delete win.__demoAction;
+      delete win.__demoNextStep;
     };
   }, []);
 
@@ -303,6 +332,129 @@ export function Demo() {
   const isTypingSimulation = mode === "simulation" && phase === "typing";
   const isStreamingSimulation = mode === "simulation" && phase === "streaming";
   const showLoadingDots = isStreamingSimulation || isStreaming;
+
+  const rootChildCount =
+    currentTree?.elements?.[currentTree.root]?.children?.length;
+
+  useEffect(() => {
+    if (stepByStep) {
+      setStepIndex(0);
+    }
+  }, [stepByStep, currentTree?.root, rootChildCount]);
+
+  const stepTreeInfo = (() => {
+    if (!stepByStep || !currentTree || !currentTree.root) {
+      return {
+        tree: currentTree,
+        total: 1,
+        active: 0,
+        activeChildKey: undefined,
+      };
+    }
+
+    const rootElement = currentTree.elements[currentTree.root] as
+      | UIElement<string, Record<string, unknown>>
+      | undefined;
+    if (!rootElement) {
+      return {
+        tree: currentTree,
+        total: 1,
+        active: 0,
+        activeChildKey: undefined,
+      };
+    }
+    const children = rootElement?.children || [];
+
+    const isTextOnlyElement = (key: string) => {
+      const element = currentTree.elements[key];
+      if (!element) return false;
+      if (element.type === "Text" || element.type === "Heading") return true;
+      if (element.type === "Stack") {
+        const stackChildren = element.children || [];
+        if (stackChildren.length === 0) return false;
+        return stackChildren.every((childKey) => {
+          const child = currentTree.elements[childKey];
+          return child?.type === "Text" || child?.type === "Heading";
+        });
+      }
+      return false;
+    };
+
+    const introChildren: string[] = [];
+    for (const childKey of children) {
+      if (isTextOnlyElement(childKey)) {
+        introChildren.push(childKey);
+      } else {
+        break;
+      }
+    }
+
+    const stepChildren = children.slice(introChildren.length);
+    const total = stepChildren.length || 1;
+    const active = Math.min(Math.max(stepIndex, 0), total - 1);
+    const activeChildKey = stepChildren[active];
+
+    if (!activeChildKey) {
+      return { tree: currentTree, total, active, activeChildKey: undefined };
+    }
+
+    const steppedChildren = [...introChildren, activeChildKey].filter(
+      Boolean,
+    ) as string[];
+
+    const steppedRoot: UIElement<string, Record<string, unknown>> = {
+      ...rootElement,
+      children: steppedChildren as string[],
+    };
+
+    return {
+      tree: {
+        ...currentTree,
+        elements: {
+          ...currentTree.elements,
+          [currentTree.root]: steppedRoot,
+        },
+      },
+      total,
+      active,
+      activeChildKey,
+    };
+  })();
+
+  const renderTree = stepTreeInfo.tree;
+
+  useEffect(() => {
+    const win = window as unknown as { __demoNextStep?: () => void };
+    win.__demoNextStep = () => {
+      if (!stepByStep || stepTreeInfo.total <= 1) return;
+      setStepIndex((prev) => Math.min(prev + 1, stepTreeInfo.total - 1));
+    };
+    return () => {
+      delete win.__demoNextStep;
+    };
+  }, [stepByStep, stepTreeInfo.total]);
+
+  const isTextOnlyStep = (() => {
+    if (!stepByStep || !currentTree || !stepTreeInfo.activeChildKey) {
+      return false;
+    }
+
+    const element = currentTree.elements[stepTreeInfo.activeChildKey];
+    if (!element) return false;
+
+    if (element.type === "Text" || element.type === "Heading") return true;
+
+    if (element.type === "Stack") {
+      const children = element.children || [];
+      if (children.length === 0) return false;
+      return children.every((childKey) => {
+        const child = currentTree.elements[childKey];
+        return child?.type === "Text" || child?.type === "Heading";
+      });
+    }
+
+    return false;
+  })();
 
   return (
     <div className="w-full max-w-4xl mx-auto text-left">
@@ -343,7 +495,7 @@ export function Demo() {
                 type="text"
                 value={userPrompt}
                 onChange={(e) => setUserPrompt(e.target.value)}
-                placeholder="Describe what you want to build..."
+                placeholder={placeholder}
                 className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground/50 text-base"
                 disabled={isStreaming}
                 maxLength={140}
@@ -396,121 +548,233 @@ export function Demo() {
           )}
         </div>
         <div className="mt-2 text-xs text-muted-foreground text-center">
-          Try: &quot;Create a login form&quot; or &quot;Build a feedback form
-          with rating&quot;
+          {helperText}
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4">
-        {/* Tabbed code/stream/json panel */}
-        <div>
-          <div className="flex items-center gap-4 mb-2 h-6">
-            {(["json", "stream", "code"] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`text-xs font-mono transition-colors ${
-                  activeTab === tab
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+      {layout === "split" ? (
+        <div className="grid lg:grid-cols-2 gap-4">
+          {/* Tabbed code/stream/json panel */}
+          <div>
+            <div className="flex items-center gap-4 mb-2 h-6">
+              {(["json", "stream", "code"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`text-xs font-mono transition-colors ${
+                    activeTab === tab
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+            <div className="border border-border rounded p-3 bg-background font-mono text-xs h-96 overflow-auto text-left">
+              <div className={activeTab === "stream" ? "" : "hidden"}>
+                {streamLines.length > 0 ? (
+                  <>
+                    <CodeBlock>
+                      <CodeBlockCode
+                        code={streamLines.join("\n")}
+                        language="json"
+                      />
+                    </CodeBlock>
+                    {showLoadingDots && (
+                      <div className="flex gap-1 mt-2">
+                        <span className="w-1 h-1 bg-muted-foreground rounded-full animate-pulse" />
+                        <span className="w-1 h-1 bg-muted-foreground rounded-full animate-pulse [animation-delay:75ms]" />
+                        <span className="w-1 h-1 bg-muted-foreground rounded-full animate-pulse [animation-delay:150ms]" />
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-muted-foreground/50">
+                    {showLoadingDots ? "streaming..." : "waiting..."}
+                  </div>
+                )}
+              </div>
+              <div className={activeTab === "json" ? "" : "hidden"}>
+                <CodeBlock>
+                  <CodeBlockCode code={jsonCode} language="json" />
+                </CodeBlock>
+              </div>
+              <div className={activeTab === "code" ? "" : "hidden"}>
+                <CodeBlock>
+                  <CodeBlockCode code={CODE_EXAMPLE} language="tsx" />
+                </CodeBlock>
+              </div>
+            </div>
           </div>
-          <div className="border border-border rounded p-3 bg-background font-mono text-xs h-96 overflow-auto text-left">
-            <div className={activeTab === "stream" ? "" : "hidden"}>
-              {streamLines.length > 0 ? (
-                <>
-                  <CodeBlock code={streamLines.join("\n")} lang="json" />
-                  {showLoadingDots && (
-                    <div className="flex gap-1 mt-2">
-                      <span className="w-1 h-1 bg-muted-foreground rounded-full animate-pulse" />
-                      <span className="w-1 h-1 bg-muted-foreground rounded-full animate-pulse [animation-delay:75ms]" />
-                      <span className="w-1 h-1 bg-muted-foreground rounded-full animate-pulse [animation-delay:150ms]" />
-                    </div>
-                  )}
-                </>
+
+          {/* Rendered output using json-render */}
+          <div>
+            <div className="flex items-center justify-between mb-2 h-6">
+              <div className="text-xs text-muted-foreground font-mono">
+                render
+              </div>
+              <button
+                onClick={() => setIsFullscreen(true)}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Maximize"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+                  <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
+                  <path d="M3 16v3a2 2 0 0 0 2 2h3" />
+                  <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+                </svg>
+              </button>
+            </div>
+            <div className="border border-border rounded p-3 bg-background h-96 overflow-auto">
+              {renderTree && renderTree.root ? (
+                <div className="animate-in fade-in duration-200 w-full min-h-full flex items-center justify-center py-4">
+                  <JSONUIProvider
+                    registry={
+                      demoRegistry as Parameters<
+                        typeof JSONUIProvider
+                      >[0]["registry"]
+                    }
+                  >
+                    <Renderer
+                      tree={renderTree}
+                      registry={
+                        demoRegistry as Parameters<
+                          typeof Renderer
+                        >[0]["registry"]
+                      }
+                      loading={isStreaming || isStreamingSimulation}
+                      fallback={
+                        fallbackComponent as Parameters<
+                          typeof Renderer
+                        >[0]["fallback"]
+                      }
+                    />
+                  </JSONUIProvider>
+                </div>
               ) : (
-                <div className="text-muted-foreground/50">
-                  {showLoadingDots ? "streaming..." : "waiting..."}
+                <div className="h-full flex items-center justify-center text-muted-foreground/50 text-sm">
+                  {isStreaming ? "generating..." : "waiting..."}
                 </div>
               )}
             </div>
-            <div className={activeTab === "json" ? "" : "hidden"}>
-              <CodeBlock code={jsonCode} lang="json" />
-            </div>
-            <div className={activeTab === "code" ? "" : "hidden"}>
-              <CodeBlock code={CODE_EXAMPLE} lang="tsx" />
-            </div>
+            <Toaster position="bottom-right" />
           </div>
         </div>
-
-        {/* Rendered output using json-render */}
-        <div>
-          <div className="flex items-center justify-between mb-2 h-6">
-            <div className="text-xs text-muted-foreground font-mono">
-              render
-            </div>
-            <button
-              onClick={() => setIsFullscreen(true)}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Maximize"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M8 3H5a2 2 0 0 0-2 2v3" />
-                <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
-                <path d="M3 16v3a2 2 0 0 0 2 2h3" />
-                <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
-              </svg>
-            </button>
-          </div>
-          <div className="border border-border rounded p-3 bg-background h-96 overflow-auto">
-            {currentTree && currentTree.root ? (
-              <div className="animate-in fade-in duration-200 w-full min-h-full flex items-center justify-center py-4">
-                <JSONUIProvider
-                  registry={
-                    demoRegistry as Parameters<
-                      typeof JSONUIProvider
-                    >[0]["registry"]
-                  }
+      ) : (
+        <div className="space-y-4">
+          {stepByStep && stepTreeInfo.total > 1 && (
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-muted-foreground">
+                Step {stepTreeInfo.active + 1} of {stepTreeInfo.total}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setStepIndex((prev) => Math.max(prev - 1, 0))}
+                  disabled={stepTreeInfo.active === 0}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
                 >
-                  <Renderer
-                    tree={currentTree}
-                    registry={
-                      demoRegistry as Parameters<typeof Renderer>[0]["registry"]
-                    }
-                    loading={isStreaming || isStreamingSimulation}
-                    fallback={
-                      fallbackComponent as Parameters<
-                        typeof Renderer
-                      >[0]["fallback"]
-                    }
-                  />
-                </JSONUIProvider>
+                  Previous
+                </button>
+                <button
+                  onClick={() =>
+                    setStepIndex((prev) =>
+                      Math.min(prev + 1, stepTreeInfo.total - 1),
+                    )
+                  }
+                  disabled={stepTreeInfo.active >= stepTreeInfo.total - 1}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
+                >
+                  Next
+                </button>
               </div>
-            ) : (
-              <div className="h-full flex items-center justify-center text-muted-foreground/50 text-sm">
-                {isStreaming ? "generating..." : "waiting..."}
-              </div>
-            )}
-          </div>
+            </div>
+          )}
+          {showJsonToggle && (
+            <div className="flex items-center justify-end">
+              <button
+                onClick={() => setShowJson((prev) => !prev)}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showJson ? "Hide JSON" : "Show JSON"}
+              </button>
+            </div>
+          )}
+          {showJson && (
+            <div className="border border-border rounded p-3 bg-background font-mono text-xs overflow-auto text-left">
+              <CodeBlock>
+                <CodeBlockCode code={jsonCode} language="json" />
+              </CodeBlock>
+            </div>
+          )}
+          {renderTree && renderTree.root ? (
+            <div className="animate-in fade-in duration-200 w-full">
+              <JSONUIProvider
+                registry={
+                  demoRegistry as Parameters<
+                    typeof JSONUIProvider
+                  >[0]["registry"]
+                }
+              >
+                <Renderer
+                  tree={renderTree}
+                  registry={
+                    demoRegistry as Parameters<typeof Renderer>[0]["registry"]
+                  }
+                  loading={isStreaming || isStreamingSimulation}
+                  fallback={
+                    fallbackComponent as Parameters<
+                      typeof Renderer
+                    >[0]["fallback"]
+                  }
+                />
+              </JSONUIProvider>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center text-muted-foreground/50 text-sm">
+              {isStreaming ? "generating..." : "waiting..."}
+            </div>
+          )}
+          {stepByStep && isTextOnlyStep && stepTreeInfo.total > 1 && (
+            <div className="flex justify-end gap-2">
+              {stepTreeInfo.active > 0 && (
+                <button
+                  onClick={() => setStepIndex((prev) => Math.max(prev - 1, 0))}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Previous
+                </button>
+              )}
+              {stepTreeInfo.active < stepTreeInfo.total - 1 && (
+                <button
+                  onClick={() =>
+                    setStepIndex((prev) =>
+                      Math.min(prev + 1, stepTreeInfo.total - 1),
+                    )
+                  }
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Next
+                </button>
+              )}
+            </div>
+          )}
           <Toaster position="bottom-right" />
         </div>
-      </div>
+      )}
 
       {/* Fullscreen modal */}
-      {isFullscreen && (
+      {layout === "split" && isFullscreen && (
         <div className="fixed inset-0 z-50 bg-background flex flex-col">
           <div className="flex items-center justify-between px-6 h-14 border-b border-border">
             <div className="text-sm font-mono">render</div>

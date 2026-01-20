@@ -1,200 +1,103 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { createHighlighter, type Highlighter } from "shiki";
-import { CopyButton } from "./copy-button";
+import { cn } from "@/lib/utils";
+import React, { useEffect, useState } from "react";
+import { codeToHtml } from "shiki";
+import { useTheme } from "next-themes";
 
-const vercelDarkTheme = {
-  name: "vercel-dark",
-  type: "dark" as const,
-  colors: {
-    "editor.background": "transparent",
-    "editor.foreground": "#EDEDED",
-  },
-  settings: [
-    {
-      scope: ["comment", "punctuation.definition.comment"],
-      settings: { foreground: "#666666" },
-    },
-    {
-      scope: ["string", "string.quoted", "string.template"],
-      settings: { foreground: "#50E3C2" },
-    },
-    {
-      scope: [
-        "constant.numeric",
-        "constant.language.boolean",
-        "constant.language.null",
-      ],
-      settings: { foreground: "#50E3C2" },
-    },
-    {
-      scope: ["keyword", "storage.type", "storage.modifier"],
-      settings: { foreground: "#FF0080" },
-    },
-    {
-      scope: ["keyword.operator", "keyword.control"],
-      settings: { foreground: "#FF0080" },
-    },
-    {
-      scope: ["entity.name.function", "support.function", "meta.function-call"],
-      settings: { foreground: "#7928CA" },
-    },
-    {
-      scope: ["variable", "variable.other", "variable.parameter"],
-      settings: { foreground: "#EDEDED" },
-    },
-    {
-      scope: ["entity.name.tag", "support.class.component", "entity.name.type"],
-      settings: { foreground: "#FF0080" },
-    },
-    {
-      scope: ["punctuation", "meta.brace", "meta.bracket"],
-      settings: { foreground: "#888888" },
-    },
-    {
-      scope: [
-        "support.type.property-name",
-        "entity.name.tag.json",
-        "meta.object-literal.key",
-      ],
-      settings: { foreground: "#EDEDED" },
-    },
-    {
-      scope: ["entity.other.attribute-name"],
-      settings: { foreground: "#50E3C2" },
-    },
-    {
-      scope: ["support.type.primitive", "entity.name.type.primitive"],
-      settings: { foreground: "#50E3C2" },
-    },
-  ],
-};
+export type CodeBlockProps = {
+  children?: React.ReactNode;
+  className?: string;
+} & React.HTMLProps<HTMLDivElement>;
 
-const vercelLightTheme = {
-  name: "vercel-light",
-  type: "light" as const,
-  colors: {
-    "editor.background": "transparent",
-    "editor.foreground": "#171717",
-  },
-  settings: [
-    {
-      scope: ["comment", "punctuation.definition.comment"],
-      settings: { foreground: "#6b7280" },
-    },
-    {
-      scope: ["string", "string.quoted", "string.template"],
-      settings: { foreground: "#067a6e" },
-    },
-    {
-      scope: [
-        "constant.numeric",
-        "constant.language.boolean",
-        "constant.language.null",
-      ],
-      settings: { foreground: "#067a6e" },
-    },
-    {
-      scope: ["keyword", "storage.type", "storage.modifier"],
-      settings: { foreground: "#d6409f" },
-    },
-    {
-      scope: ["keyword.operator", "keyword.control"],
-      settings: { foreground: "#d6409f" },
-    },
-    {
-      scope: ["entity.name.function", "support.function", "meta.function-call"],
-      settings: { foreground: "#6e56cf" },
-    },
-    {
-      scope: ["variable", "variable.other", "variable.parameter"],
-      settings: { foreground: "#171717" },
-    },
-    {
-      scope: ["entity.name.tag", "support.class.component", "entity.name.type"],
-      settings: { foreground: "#d6409f" },
-    },
-    {
-      scope: ["punctuation", "meta.brace", "meta.bracket"],
-      settings: { foreground: "#6b7280" },
-    },
-    {
-      scope: [
-        "support.type.property-name",
-        "entity.name.tag.json",
-        "meta.object-literal.key",
-      ],
-      settings: { foreground: "#171717" },
-    },
-    {
-      scope: ["entity.other.attribute-name"],
-      settings: { foreground: "#067a6e" },
-    },
-    {
-      scope: ["support.type.primitive", "entity.name.type.primitive"],
-      settings: { foreground: "#067a6e" },
-    },
-  ],
-};
-
-// Preload highlighter on module load
-let highlighterPromise: Promise<Highlighter> | null = null;
-
-function getHighlighter() {
-  if (!highlighterPromise) {
-    highlighterPromise = createHighlighter({
-      themes: [vercelLightTheme, vercelDarkTheme],
-      langs: ["json", "tsx", "typescript"],
-    });
-  }
-  return highlighterPromise;
-}
-
-// Start loading immediately when module is imported
-if (typeof window !== "undefined") {
-  getHighlighter();
-}
-
-interface CodeBlockProps {
-  code: string;
-  lang: "json" | "tsx" | "typescript";
-}
-
-export function CodeBlock({ code, lang }: CodeBlockProps) {
-  const [html, setHtml] = useState<string>("");
-
-  useEffect(() => {
-    getHighlighter().then((highlighter) => {
-      setHtml(
-        highlighter.codeToHtml(code, {
-          lang,
-          themes: {
-            light: "vercel-light",
-            dark: "vercel-dark",
-          },
-          defaultColor: false,
-        }),
-      );
-    });
-  }, [code, lang]);
-
-  if (!html) {
-    return null;
-  }
-
+function CodeBlock({ children, className, ...props }: CodeBlockProps) {
   return (
-    <div className="relative group">
-      <div className="sticky top-0 float-right z-10">
-        <CopyButton
-          text={code}
-          className="opacity-0 group-hover:opacity-100 text-neutral-400"
-        />
-      </div>
-      <div
-        className="text-[11px] leading-relaxed [&_pre]:bg-transparent! [&_pre]:p-0! [&_pre]:m-0! [&_pre]:border-none! [&_pre]:rounded-none! [&_pre]:text-[11px]! [&_code]:bg-transparent! [&_code]:p-0! [&_code]:rounded-none! [&_code]:text-[11px]!"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
+    <div
+      className={cn(
+        "not-prose flex w-full flex-col overflow-clip border",
+        "border-border bg-card text-card-foreground rounded-xl",
+        className,
+      )}
+      {...props}
+    >
+      {children}
     </div>
   );
 }
+CodeBlock.displayName = "CodeBlock";
+
+export type CodeBlockCodeProps = {
+  code: string;
+  language?: string;
+  theme?: string;
+  className?: string;
+} & React.HTMLProps<HTMLDivElement>;
+
+function CodeBlockCode({
+  code,
+  language = "tsx",
+  theme,
+  className,
+  ...props
+}: CodeBlockCodeProps) {
+  const { resolvedTheme } = useTheme();
+  const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function highlight() {
+      if (!code) {
+        setHighlightedHtml("<pre><code></code></pre>");
+        return;
+      }
+
+      // Use adaptive theme if not explicitly set
+      const effectiveTheme =
+        theme || (resolvedTheme === "dark" ? "github-dark" : "github-light");
+      const html = await codeToHtml(code, {
+        lang: language,
+        theme: effectiveTheme,
+      });
+      setHighlightedHtml(html);
+    }
+    highlight();
+  }, [code, language, theme, resolvedTheme]);
+
+  const classNames = cn(
+    "w-full overflow-x-auto text-[13px] [&>pre]:px-4 [&>pre]:py-4 [&>pre]:min-w-full",
+    className,
+  );
+
+  // SSR fallback: render plain code if not hydrated yet
+  return highlightedHtml ? (
+    <div
+      className={classNames}
+      dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+      {...props}
+    />
+  ) : (
+    <div className={classNames} {...props}>
+      <pre>
+        <code>{code}</code>
+      </pre>
+    </div>
+  );
+}
+
+export type CodeBlockGroupProps = React.HTMLAttributes<HTMLDivElement>;
+
+function CodeBlockGroup({
+  children,
+  className,
+  ...props
+}: CodeBlockGroupProps) {
+  return (
+    <div
+      className={cn("flex items-center justify-between", className)}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
+
+export { CodeBlockGroup, CodeBlockCode, CodeBlock };

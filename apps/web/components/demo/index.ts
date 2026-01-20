@@ -24,6 +24,7 @@ export { Image } from "./image";
 export { Input } from "./input";
 export { LineGraph } from "./line-graph";
 export { Link } from "./link";
+export { Markdown, MarkdownRenderer } from "./Markdown";
 export { Matching } from "./Matching";
 export { NumericInput } from "./NumericInput";
 export { OrderSteps } from "./OrderSteps";
@@ -61,6 +62,7 @@ import { Image } from "./image";
 import { Input } from "./input";
 import { LineGraph } from "./line-graph";
 import { Link } from "./link";
+import { MarkdownRenderer } from "./Markdown";
 import { Matching } from "./Matching";
 import { NumericInput } from "./NumericInput";
 import { OrderSteps } from "./OrderSteps";
@@ -97,6 +99,7 @@ export const demoRegistry: ComponentRegistry = {
   Input,
   LineGraph,
   Link,
+  Markdown: MarkdownRenderer,
   Matching,
   NumericInput,
   OrderSteps,

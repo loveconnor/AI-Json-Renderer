@@ -71,7 +71,7 @@ RULES:
 5. Parent first, then children
 6. Each element needs: key, type, props
 7. Use className for custom Tailwind styling when needed
-7a. Prefer Markdown for rich text, explanations, or multi-paragraph content. Use Text only for short single-line labels.
+7a. Prefer Markdown for teaching text, explanations, hints, and multi-paragraph content. Use Text only for short labels.
 8. For multi-select questions ("select all", "which are valid", "choose all that apply"), use MultipleChoice with correctOptionIds (array) and set minSelections to the required minimum.
 9. For quizzes with multiple questions, use ONE MultipleChoice component with the questions array so the built-in Next/Previous navigation is used.
 10. For Matching, a pair is correct only when leftItems[i].id equals rightItems[j].id. Use matching ids for correct pairs (labels can differ).
@@ -108,6 +108,62 @@ EXAMPLE (CodeFill single component):
 
 Generate JSONL:`;
 
+const LEARN_BY_DOING_APPENDIX = `
+INTERACTIVE LEARN-BY-DOING FRAMEWORK
+
+Objective:
+Build real skills by having users build solutions in a responsive, interactive environment instead of just reading text.
+
+Part A: Learn-by-Doing Methodology
+Core Principles:
+- Action First: Users try to solve a problem before seeing the explanation.
+- Active Thinking: Tasks should make users think, guess, and fix mistakes.
+- Step-by-Step: Start easy and get harder, using what was just learned.
+
+Mechanics:
+- Problem-First Flow: Show a prompt, user tries it, system gives feedback, user improves.
+- Real Reasoning: Multi-step problems that feel like real-world logic.
+- Helpful Hints: Validate answers immediately. Give hints instead of the answer.
+- Practice: Repeat concepts in different ways to make them stick.
+
+Goals:
+- Better intuition for concepts.
+- Better problem solving.
+- Remembering more than just watching a video.
+
+Part B: Interactive Learning Experience
+Core Components:
+- Dynamic Content: The problem changes based on what the user picks.
+- Visual Tools: Use sliders, graphs, and simulations that move and change instantly.
+- Smart Feedback: If an answer is wrong, explain why based on the specific mistake.
+
+Interaction Model:
+- Continuous Loop: Instant feedback logic. No big "Submit and Wait" buttons if possible.
+- Branching Paths: If a user is stuck, make it easier or explain more. If they are fast, move ahead.
+- Micro-Checks: Small questions to make sure they get it before moving on.
+- Show One Step at a Time: If there are multiple steps, use components with built-in navigation (MultipleChoice questions array, CodeFill scenarios, or OrderSteps/Matching with progressive prompts). Avoid showing all steps at once.
+
+CodeFill Requirements:
+- When using CodeFill, ALWAYS set showControls:true, showScenarioNavigation:true, showOptions:true, showFeedback:true, autoAdvance:true.
+- Provide scenarios with at least 2 items so the Next button advances.
+
+Lesson Structure Requirements:
+- The goal is to test the user on the topic with hands-on activities.
+- Provide enough steps to teach and assess: at least 5 steps, mixing short text steps with interactive checks.
+- Include detailed text steps (explanations, hints, and guidance) between activities so the user understands before attempting the next task.
+- Do NOT create steps that are only a heading. Every text-only step must include at least one Text element under the heading.
+- For text-only teaching steps, use Heading/Text (or a Stack of them) directly. Do NOT wrap teaching text in a Card.
+- Use Markdown for the teaching text blocks instead of Text when there is more than one sentence or any formatting (lists, code, math).
+
+Benefits:
+- Stops users from just scrolling through text.
+- Encourages playing around with the concepts.
+- Makes abstract ideas feel real and touchable.
+
+Combined Vision:
+Treat mistakes as learning moments, keep users focused and thinking, and create deep understanding, not just memorization.
+`;
+
 const MAX_PROMPT_LENGTH = 140;
 const DEFAULT_GATEWAY_MODEL = "anthropic/claude-opus-4.5";
 const DEFAULT_OLLAMA_MODEL = "llama3.1";
@@ -142,7 +198,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: getModel(),
-    system: SYSTEM_PROMPT,
+    system: `${SYSTEM_PROMPT}\n\n${LEARN_BY_DOING_APPENDIX}`,
     prompt: sanitizedPrompt,
     temperature: 0.7,
   });

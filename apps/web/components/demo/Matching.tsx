@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useLayoutEffect } from "react";
 import { Check, RotateCcw, X } from "lucide-react";
 
 import type { ComponentRenderProps } from "./types";
@@ -99,14 +99,19 @@ export function Matching({ element }: ComponentRenderProps) {
           const leftRect = leftEl.getBoundingClientRect();
           const rightRect = rightEl.getBoundingClientRect();
 
+          const rawStartX = leftRect.right - containerRect.left + 6;
+          const rawEndX = rightRect.left - containerRect.left - 6;
+          const startX = rawStartX;
+          const endX = Math.max(rawEndX, startX + 12);
+
           // Calculate start (right side of left item) and end (left side of right item) relative to container
           lines.push({
             start: {
-              x: leftRect.right - containerRect.left,
+              x: startX,
               y: leftRect.top + leftRect.height / 2 - containerRect.top,
             },
             end: {
-              x: rightRect.left - containerRect.left,
+              x: endX,
               y: rightRect.top + rightRect.height / 2 - containerRect.top,
             },
             color: leftId === rightId ? "url(#gradient-line)" : "#ef4444",
@@ -117,12 +122,16 @@ export function Matching({ element }: ComponentRenderProps) {
     };
   }, [matches, rightOrder]);
 
-  // Update lines on resize or selection change
+  // Update lines after layout changes
+  useLayoutEffect(() => {
+    requestAnimationFrame(updateLines);
+  }, [updateLines, matches, rightOrder]);
+
+  // Update lines on resize
   useEffect(() => {
-    updateLines();
     window.addEventListener("resize", updateLines);
     return () => window.removeEventListener("resize", updateLines);
-  }, [updateLines, matches]);
+  }, [updateLines]);
 
   // Handle Selection
   const handleLeftClick = (id: string) => {

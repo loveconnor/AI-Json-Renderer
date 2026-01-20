@@ -198,10 +198,14 @@ const CodeRenderer = ({
   onOptionDrop,
   validationState,
 }: CodeRendererProps) => {
-  const parts = useMemo(() => {
-    const regex = /({{gap_\d+}})/g;
-    return template.split(regex);
+  const normalizedTemplate = useMemo(() => {
+    return template.replace(/\\r\\n|\\n|\\r/g, "\n").replace(/\\t/g, "\t");
   }, [template]);
+
+  const parts = useMemo(() => {
+    const regex = /({{gap_[^}]+}})/g;
+    return normalizedTemplate.split(regex);
+  }, [normalizedTemplate]);
 
   const handleDragOver = (e: React.DragEvent<HTMLSpanElement>) => {
     e.preventDefault();
@@ -224,7 +228,7 @@ const CodeRenderer = ({
   return (
     <div className="font-mono text-sm leading-8 whitespace-pre-wrap">
       {parts.map((part, index) => {
-        const gapMatch = part.match(/{{(gap_\d+)}}/);
+        const gapMatch = part.match(/{{(gap_[^}]+)}}/);
         const gapId = gapMatch?.[1];
 
         if (gapId) {
@@ -234,7 +238,7 @@ const CodeRenderer = ({
           const isError = validationState?.submitted && !isCorrect;
 
           let classes =
-            "inline-flex items-center justify-center min-w-[80px] h-7 px-3 mx-1 rounded text-xs transition-all duration-200 cursor-pointer select-none border border-dashed align-middle transform translate-y-[-1px]";
+            "inline-block min-w-[80px] min-h-[28px] px-3 py-1 mx-1 rounded text-xs transition-all duration-200 cursor-pointer select-none border border-dashed align-middle whitespace-pre";
 
           if (isSelected) {
             classes +=
@@ -425,13 +429,16 @@ export function CodeFill({ element, children }: ComponentRenderProps) {
   };
 
   const handleOptionSelect = (option: CodeFillOption) => {
-    if (!selectedGap || !scenario) return;
+    if (!scenario) return;
+    const targetGap =
+      selectedGap || scenario.gaps.find((gap) => !answers[gap.id])?.id;
+    if (!targetGap) return;
 
     setAnswers((prev) => {
-      const nextAnswers = { ...prev, [selectedGap]: option };
+      const nextAnswers = { ...prev, [targetGap]: option };
       if (autoAdvance) {
         const gapIds = scenario.gaps.map((g) => g.id);
-        const nextGap = getNextGapId(gapIds, selectedGap, nextAnswers);
+        const nextGap = getNextGapId(gapIds, targetGap, nextAnswers);
         setSelectedGap(nextGap);
       }
       return nextAnswers;
@@ -469,7 +476,11 @@ export function CodeFill({ element, children }: ComponentRenderProps) {
     if (!showScenarioNavigation) return;
     if (currentScenarioIndex < scenarios.length - 1) {
       setCurrentScenarioIndex((prev) => prev + 1);
+      return;
     }
+
+    const win = window as unknown as { __demoNextStep?: () => void };
+    win.__demoNextStep?.();
   };
 
   const handleReset = () => {

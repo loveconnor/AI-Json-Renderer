@@ -12,6 +12,9 @@ export function Header() {
           AI JSON Renderer
         </Link>
         <nav className="flex gap-4 items-center text-sm">
+          <Link href="/learn" className="hover:opacity-70 transition-opacity">
+            Learn
+          </Link>
           <ThemeToggle />
         </nav>
       </div>
